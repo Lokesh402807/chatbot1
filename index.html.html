@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AssetInvestIndia Chatbot Demo</title>
+
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+}
+.chat {
+  width: 360px;
+  height: 520px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #0b5ed7;
+  color: #fff;
+  padding: 14px;
+  text-align: center;
+  font-weight: bold;
+}
+.body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  background: #f9fafb;
+}
+.msg {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  max-width: 75%;
+}
+.bot {
+  background: #e5e7eb;
+}
+.user {
+  background: #0b5ed7;
+  color: #fff;
+  margin-left: auto;
+}
+.footer {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+input {
+  flex: 1;
+  padding: 8px;
+}
+button {
+  margin-left: 8px;
+  padding: 0 14px;
+  background: #0b5ed7;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat">
+  <div class="header">AssetInvestIndia Support</div>
+  <div class="body" id="chat"></div>
+  <div class="footer">
+    <input id="input" placeholder="Type your message..." />
+    <button onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+const WEBHOOK_URL = "https://agentdemos.app.n8n.cloud/webhook/website-chat";
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+function add(text, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Greeting (frontend only)
+add("Hello! How can I help you with AssetInvestIndia today?", "bot");
+
+function send() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  add(text, "user");
+  input.value = "";
+
+  const typing = document.createElement("div");
+  typing.className = "msg bot";
+  typing.textContent = "Typing…";
+  chat.appendChild(typing);
+
+  fetch(WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  })
+    .then(res => res.json())
+    .then(data => {
+      typing.remove();
+      add(data.reply || "No response from server.", "bot");
+    })
+    .catch(() => {
+      typing.remove();
+      add("Unable to connect right now.", "bot");
+    });
+}
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") send();
+});
+</script>
+
+</body>
+</html>
